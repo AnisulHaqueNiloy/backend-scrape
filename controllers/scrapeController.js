@@ -3,6 +3,8 @@ const Product = require("../models/product");
 const Query = require("../models/query");
 const { scrapeBDBudgetBeauty } = require("../services/scraperService");
 
+
+
 exports.scrapeProduct = async (req, res) => {
     try {
         let product = req.params.product;
@@ -15,7 +17,6 @@ exports.scrapeProduct = async (req, res) => {
 
             if (bdBudgetBeautyProducts.products.length > 0) {
                 await Query.create({ query: [cleanedProduct] });
-
                 const newProduct = {
                     name: cleanedProduct,
                     products: bdBudgetBeautyProducts.products,
@@ -23,10 +24,8 @@ exports.scrapeProduct = async (req, res) => {
                 };
                 await Product.create(newProduct);
 
-                // Fetch all products
-                const allProducts = await Product.find();
+                const allProducts = await Product.find({ name: cleanedProduct });
 
-                // Sort each product's products array by numeric price (low → high)
                 const sortedProducts = allProducts.map(prod => {
                     return {
                         ...prod._doc,
@@ -37,24 +36,24 @@ exports.scrapeProduct = async (req, res) => {
                         })
                     };
                 });
-
                 return res.status(201).json({
                     success: true,
-                    message: "Product fetched successfully.",
+                    message: "Product Fetched successfully.",
                     data: sortedProducts,
                 });
             }
 
-            // If no products found
-            return res.status(404).json({
-                success: false,
-                message: "No products found from scraper.",
-            });
+            if (!bdBudgetBeautyProducts.products.length > 0) {
+                return res.status(404).json({
+                    success: false,
+                    message: "No products found from scraper.",
+                });
+            }
+
 
         } else {
             const storedProduct = await Product.find({ name: cleanedProduct });
 
-            // Sort stored product's products array
             const sortedStoredProduct = storedProduct.map(prod => {
                 return {
                     ...prod._doc,
