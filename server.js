@@ -32,7 +32,7 @@ const limiter = rateLimit({
 app.use(limiter);
 
 // Routes
-app.use("/", scrapeRoutes);
+app.use("/api/v1", scrapeRoutes);
 
 // Start server
 app.listen(PORT, () =>
